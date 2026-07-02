@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRAITHIC — static took the rest.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --void: #0a0a0b;
+    --void-2: #101012;
+    --bone: #e8e4da;
+    --bone-dim: #9a9690;
+    --static: #3d3d3f;
+    --signal: #5ec8d8;
+    --signal-dim: #1c3a42;
+    --danger: #d9714f;
+
+    --display: 'Bebas Neue', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--void);
+    color:var(--bone);
+    font-family:var(--mono);
+    overflow-x:hidden;
+  }
+
+  ::selection{ background:var(--signal); color:var(--void); }
+
+  a{ color:inherit; text-decoration:none; }
+
+  .noise-canvas{
+    position:fixed; inset:0; width:100%; height:100%;
+    z-index:0; opacity:.05; pointer-events:none; mix-blend-mode:overlay;
+  }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 5vw;
+    background:linear-gradient(to bottom, rgba(10,10,11,.9), transparent);
+  }
+  .nav-mark{ font-family:var(--display); font-size:22px; letter-spacing:2px; }
+  .nav-links{ display:flex; gap:36px; list-style:none; }
+  .nav-links a{
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--bone-dim); position:relative;
+  }
+  .nav-links a:hover{ color:var(--signal); }
+  .nav-links a:hover::before{ content: attr(data-glitch); position:absolute; left:1px; top:1px; color:var(--danger); opacity:.6; z-index:-1; }
+  .nav-toggle{ display:none; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative; min-height:100svh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    padding:0 5vw; z-index:1; overflow:hidden;
+  }
+  .hero-count{
+    font-size:11px; letter-spacing:4px; text-transform:uppercase;
+    color:var(--signal); margin-bottom:22px;
+  }
+  .hero-count .dot{ display:inline-block; width:6px; height:6px; background:var(--signal); border-radius:50%; margin-right:8px; animation:pulse 2s infinite; vertical-align:middle; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.2;} }
+
+  .hero-title{
+    font-family:var(--display);
+    font-size:clamp(72px, 16vw, 220px);
+    line-height:.85; letter-spacing:2px;
+    color:var(--bone);
+    position:relative;
+  }
+  .hero-title span{ display:block; position:relative; }
+  .hero-title .glitch-layer{
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    color:var(--signal); opacity:0; clip-path:inset(0 0 0 0);
+  }
+
+  .hero-sub{
+    margin-top:26px; font-size:15px; letter-spacing:1px;
+    color:var(--bone-dim); max-width:440px;
+  }
+  .hero-sub b{ color:var(--bone); font-weight:400; }
+
+  .hero-actions{ display:flex; gap:16px; margin-top:44px; flex-wrap:wrap; justify-content:center; }
+  .btn-primary, .btn-ghost{
+    padding:15px 34px; font-size:12px; letter-spacing:2px; text-transform:uppercase;
+    transition:.2s; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--bone); color:var(--void); }
+  .btn-primary:hover{ background:var(--signal); }
+  .btn-ghost{ border-color:var(--static); color:var(--bone); }
+  .btn-ghost:hover{ border-color:var(--bone); }
+
+  .scroll-hint{
+    position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+    font-size:10px; letter-spacing:3px; color:var(--bone-dim); text-transform:uppercase;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .scroll-hint::after{
+    content:''; width:1px; height:36px; background:var(--static);
+    position:relative; overflow:hidden;
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ position:relative; z-index:1; padding:140px 5vw; }
+  .section-inner{ max-width:1080px; margin:0 auto; }
+  .eyebrow{
+    font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--signal);
+    margin-bottom:18px; display:flex; align-items:center; gap:12px;
+  }
+  .eyebrow::before{ content:''; width:24px; height:1px; background:var(--signal); }
+  h2{
+    font-family:var(--display); font-size:clamp(40px,6vw,68px);
+    letter-spacing:1px; line-height:1; margin-bottom:28px; color:var(--bone);
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about{ border-top:1px solid var(--static); }
+  .about-grid{ display:grid; grid-template-columns:1.1fr .9fr; gap:80px; align-items:start; }
+  .about-copy p{ font-size:15px; line-height:2; color:var(--bone-dim); margin-bottom:22px; max-width:480px; }
+  .about-copy p b{ color:var(--bone); font-weight:400; }
+  .stat-block{ border-left:1px solid var(--static); padding-left:28px; }
+  .stat-row{ display:flex; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--static); font-size:13px; }
+  .stat-row span:first-child{ color:var(--bone-dim); text-transform:uppercase; letter-spacing:1px; }
+  .stat-row span:last-child{ color:var(--bone); }
+
+  /* ---------- ROADMAP ---------- */
+  .roadmap{ border-top:1px solid var(--static); position:relative; overflow:hidden; }
+  .roadmap-scanline{
+    position:absolute; left:0; right:0; height:120px; z-index:0; pointer-events:none;
+    background:linear-gradient(to bottom, transparent, rgba(94,200,216,.06), transparent);
+    animation:scandown 7s linear infinite;
+  }
+  @keyframes scandown{ 0%{ top:-120px; } 100%{ top:100%; } }
+
+  .signal-track{ position:relative; margin-top:80px; padding-left:64px; }
+  .signal-track::before{
+    content:''; position:absolute; left:19px; top:6px; bottom:6px; width:1px;
+    background:linear-gradient(to bottom, var(--signal), var(--static) 40%, var(--static) 100%);
+  }
+  .signal-step{
+    position:relative; display:grid; grid-template-columns:1fr; gap:14px;
+    padding:0 0 84px 0;
+    opacity:0; transform:translateX(-16px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .signal-step.in-view{ opacity:1; transform:translateX(0); }
+  .signal-step:last-child{ padding-bottom:0; }
+
+  .signal-node{
+    position:absolute; left:-64px; top:0; width:40px; height:40px;
+    border:1px solid var(--static); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--void); z-index:1; transition:.4s;
+  }
+  .signal-node .bars{ display:flex; gap:2.5px; align-items:flex-end; height:14px; }
+  .signal-node .bars i{ width:2.5px; background:var(--static); display:block; transition:height .6s ease, background .4s ease; }
+  .signal-node .bars i:nth-child(1){ height:25%; }
+  .signal-node .bars i:nth-child(2){ height:50%; }
+  .signal-node .bars i:nth-child(3){ height:75%; }
+  .signal-node .bars i:nth-child(4){ height:100%; }
+  .signal-step.active .signal-node{ border-color:var(--signal); box-shadow:0 0 0 6px var(--signal-dim), 0 0 24px rgba(94,200,216,.5); }
+  .signal-step.active .signal-node .bars i{ background:var(--signal); }
+
+  .freq{ font-size:10px; color:var(--bone-dim); letter-spacing:3px; text-transform:uppercase; margin-bottom:10px; }
+  .signal-step.active .freq{ color:var(--signal); }
+  .step-name{
+    font-family:var(--display); font-size:clamp(34px,5vw,56px); letter-spacing:1px;
+    color:var(--bone); margin-bottom:12px; line-height:1; position:relative; width:fit-content;
+  }
+  .signal-step.active .step-name{ color:var(--signal); }
+  .signal-step.in-view .step-name{ animation:stepglitch .6s ease .1s; }
+  @keyframes stepglitch{
+    0%{ text-shadow:none; }
+    20%{ text-shadow:3px 0 var(--danger), -3px 0 var(--signal); }
+    40%{ text-shadow:-2px 0 var(--danger), 2px 0 var(--signal); }
+    60%{ text-shadow:2px 0 var(--danger), -1px 0 var(--signal); }
+    100%{ text-shadow:none; }
+  }
+  .step-desc{ font-size:14px; color:var(--bone-dim); line-height:1.9; max-width:520px; }
+  .step-tags{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .step-tags span{
+    font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--bone-dim);
+    border:1px solid var(--static); padding:5px 12px;
+  }
+  .signal-step.active .step-tags span{ border-color:var(--signal-dim); color:var(--signal); }
+
+  /* ---------- ACCESS / APPLICATION ---------- */
+  .access{ border-top:1px solid var(--static); }
+  .access-grid{ display:grid; grid-template-columns:.9fr 1.1fr; gap:80px; }
+  .access-copy p{ font-size:14px; color:var(--bone-dim); line-height:1.9; margin-bottom:16px; max-width:420px; }
+  form{ display:flex; flex-direction:column; gap:18px; }
+  .field{ display:flex; flex-direction:column; gap:8px; }
+  label{ font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--bone-dim); }
+  input, select{
+    background:var(--void-2); border:1px solid var(--static); color:var(--bone);
+    padding:14px 16px; font-family:var(--mono); font-size:13px; outline:none; transition:.2s;
+  }
+  input::placeholder{ color:#57575a; }
+  input:focus, select:focus{ border-color:var(--signal); }
+  select{ appearance:none; cursor:pointer; }
+  .submit-row{ display:flex; align-items:center; gap:18px; margin-top:8px; flex-wrap:wrap; }
+  button[type=submit]{
+    background:var(--bone); color:var(--void); border:none;
+    padding:16px 36px; font-family:var(--mono); font-size:12px; letter-spacing:2px;
+    text-transform:uppercase; cursor:pointer; transition:.2s;
+  }
+  button[type=submit]:hover{ background:var(--signal); }
+  button[type=submit]:disabled{ opacity:.4; cursor:not-allowed; background:var(--static); color:var(--bone-dim); }
+  .form-status{ font-size:12px; color:var(--bone-dim); }
+  .form-status.ok{ color:var(--signal); }
+  .form-status.err{ color:var(--danger); }
+
+  .field-link{
+    background:var(--void-2); border:1px solid var(--static); color:var(--signal);
+    padding:14px 16px; font-family:var(--mono); font-size:13px;
+    display:flex; justify-content:space-between; align-items:center; transition:.2s; cursor:pointer;
+  }
+  .field-link:hover{ border-color:var(--signal); background:var(--signal-dim); }
+  .field-link + input{ margin-top:12px; }
+  .field-link::after{ content:'Not visited'; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--bone-dim); }
+  .field-link.visited{ border-color:var(--signal); color:var(--bone); }
+  .field-link.visited::after{ content:'✓ Visited'; color:var(--signal); }
+
+  /* ---------- FAQ ---------- */
+  .faq{ border-top:1px solid var(--static); }
+  .faq-item{ border-bottom:1px solid var(--static); }
+  .faq-q{
+    padding:26px 0; display:flex; justify-content:space-between; align-items:center;
+    cursor:pointer; font-size:15px; color:var(--bone); font-family:var(--mono);
+  }
+  .faq-q .ind{ color:var(--signal); font-size:18px; transition:.25s; }
+  .faq-item.open .ind{ transform:rotate(45deg); }
+  .faq-a{ max-height:0; overflow:hidden; transition:.3s ease; }
+  .faq-a p{ padding-bottom:26px; font-size:13.5px; color:var(--bone-dim); line-height:1.9; max-width:640px; }
+
+  /* ---------- FOOTER ---------- */
+  footer{ border-top:1px solid var(--static); padding:60px 5vw 40px; position:relative; z-index:1; }
+  .footer-grid{ max-width:1080px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:30px; }
+  .footer-mark{ font-family:var(--display); font-size:28px; letter-spacing:2px; }
+  .footer-tag{ font-size:12px; color:var(--bone-dim); margin-top:6px; }
+  .footer-links{ display:flex; gap:26px; }
+  .footer-links a{ font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--bone-dim); }
+  .footer-links a:hover{ color:var(--signal); }
+  .footer-bottom{ max-width:1080px; margin:36px auto 0; padding-top:24px; border-top:1px solid var(--static); font-size:10px; color:#57575a; letter-spacing:1px; text-transform:uppercase; }
+
+  @media (max-width: 860px){
+    .nav-links{ display:none; }
+    .about-grid, .access-grid{ grid-template-columns:1fr; gap:50px; }
+    .signal-step{ grid-template-columns:80px 1fr; gap:20px; }
+    section{ padding:90px 6vw; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero-count .dot{ animation:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<canvas class="noise-canvas" id="noise"></canvas>
+
+<nav>
+  <div class="nav-mark">WRAITHIC</div>
+  <ul class="nav-links">
+    <li><a href="#about" data-glitch="ABOUT">ABOUT</a></li>
+    <li><a href="#roadmap" data-glitch="ROADMAP">ROADMAP</a></li>
+    <li><a href="#access" data-glitch="ACCESS">ACCESS</a></li>
+    <li><a href="#faq" data-glitch="FAQ">FAQ</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-count"><span class="dot"></span>10,000 WRAITHS REMAIN</div>
+  <h1 class="hero-title"><span>WRAITHIC</span></h1>
+  <p class="hero-sub">Static took the rest. <b>10,000 faceless figures</b> are what came through.</p>
+  <div class="hero-actions">
+    <a href="#access" class="btn-primary">Request Access</a>
+    <a href="#about" class="btn-ghost">What Is Wraithic</a>
+  </div>
+  <div class="scroll-hint">Scroll</div>
+</section>
+
+<section class="about" id="about">
+  <div class="section-inner about-grid">
+    <div class="about-copy">
+      <div class="eyebrow">What Is Wraithic</div>
+      <h2>No signal.<br>No face.<br>Just what's left.</h2>
+      <p>Something got through the static. <b>Nobody knows what.</b></p>
+      <p>10,000 hooded figures, cut from the same interference. No two hold the same frequency.</p>
+      <p>They don't explain themselves. <b>They don't need to.</b></p>
+    </div>
+    <div class="stat-block">
+      <div class="stat-row"><span>Supply</span><span>10,000</span></div>
+      <div class="stat-row"><span>Chain</span><span>Ethereum</span></div>
+      <div class="stat-row"><span>Faces</span><span>None</span></div>
+      <div class="stat-row"><span>Status</span><span>Pre-Signal</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="roadmap" id="roadmap">
+  <div class="roadmap-scanline"></div>
+  <div class="section-inner">
+    <div class="eyebrow">Roadmap</div>
+    <h2>Signal Path</h2>
+    <div class="signal-track">
+
+      <div class="signal-step active">
+        <div class="signal-node"><div class="bars"><i></i><i></i><i></i><i></i></div></div>
+        <div class="freq">Phase 01 — Now</div>
+        <div class="step-name">Frequency Found</div>
+        <div class="step-desc">Community forms around the signal. The access list opens. Early wraiths get first hold on what's coming.</div>
+        <div class="step-tags"><span>Access List Open</span><span>Socials Live</span></div>
+      </div>
+
+      <div class="signal-step">
+        <div class="signal-node"><div class="bars"><i></i><i></i><i></i><i></i></div></div>
+        <div class="freq">Phase 02 — Next</div>
+        <div class="step-name">Signal Lock</div>
+        <div class="step-desc">Minting opens in tiers. Guaranteed access first, then the wider list, then whoever's still listening.</div>
+        <div class="step-tags"><span>GTD Mint</span><span>FCFS Mint</span><span>Public Mint</span></div>
+      </div>
+
+      <div class="signal-step">
+        <div class="signal-node"><div class="bars"><i></i><i></i><i></i><i></i></div></div>
+        <div class="freq">Phase 03 — Then</div>
+        <div class="step-name">Full Broadcast</div>
+        <div class="step-desc">Every wraith reveals at once. Rarity surfaces. The collection stands as one transmission, not scattered pieces.</div>
+        <div class="step-tags"><span>Reveal</span><span>Rarity Live</span></div>
+      </div>
+
+      <div class="signal-step">
+        <div class="signal-node"><div class="bars"><i></i><i></i><i></i><i></i></div></div>
+        <div class="freq">Phase 04 — After</div>
+        <div class="step-name">Beyond Static</div>
+        <div class="step-desc">Holder-only drops, real-world tie-ins, and whatever comes through next. Built with holders, not just for them.</div>
+        <div class="step-tags"><span>Holder Drops</span><span>Next Signal</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="access" id="access">
+  <div class="section-inner access-grid">
+    <div class="access-copy">
+      <div class="eyebrow">Access</div>
+      <h2>Request<br>Access</h2>
+      <p>Access is limited before it's public. Submit your wallet and socials to be considered for the list.</p>
+      <p>Selected wraiths hear first. <b>Everyone else waits for public.</b></p>
+    </div>
+
+    <form id="access-form">
+      <div class="field">
+        <label for="wallet">Wallet Address</label>
+        <input id="wallet" name="wallet" type="text" placeholder="0x..." required>
+      </div>
+      <div class="field">
+        <label for="twitter">Twitter / X Handle</label>
+        <input id="twitter" name="twitter" type="text" placeholder="@WraithicEth" required>
+      </div>
+      <div class="field">
+        <label>Follow Us</label>
+        <a href="https://x.com/WraithicEth" target="_blank" rel="noopener" class="field-link" id="link-follow" data-task="follow">Follow @WraithicEth on X →</a>
+      </div>
+
+      <div class="field">
+        <label>Like &amp; Retweet</label>
+        <a href="https://x.com/WraithicEth/status/2072747283481792690" target="_blank" rel="noopener" class="field-link" id="link-retweet" data-task="retweet">View the post →</a>
+      </div>
+
+      <div class="field">
+        <label>Comment On Our Post</label>
+        <a href="https://x.com/WraithicEth/status/2072747283481792690" target="_blank" rel="noopener" class="field-link" id="link-comment" data-task="comment">View the post →</a>
+        <input id="comment-link" name="comment_link" type="url" placeholder="Paste the link to your comment" required>
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" id="submit-btn" disabled>Complete Tasks Above First</button>
+        <span class="form-status" id="form-status"></span>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="section-inner">
+    <div class="eyebrow">FAQ</div>
+    <h2>Static &amp; Signal</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q"><span>What is Wraithic?</span><span class="ind">+</span></div>
+        <div class="faq-a"><p>A collection of 10,000 faceless, hooded figures on Ethereum. No lore-dump, no roadmap theatrics — just the collection and what it becomes with holders.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How do I get access?</span><span class="ind">+</span></div>
+        <div class="faq-a"><p>Submit your wallet and socials above. Guaranteed and FCFS spots are limited and reviewed before mint opens. Public is open to everyone once live.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>What chain and standard?</span><span class="ind">+</span></div>
+        <div class="faq-a"><p>Ethereum mainnet, ERC-721.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>When does mint open?</span><span class="ind">+</span></div>
+        <div class="faq-a"><p>Dates and mint price will be announced on Twitter/X once the access list closes. Follow @WraithicEth for the exact window.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-mark">WRAITHIC</div>
+      <div class="footer-tag">10,000 wraiths remain.</div>
+    </div>
+    <div class="footer-links">
+      <a href="https://x.com/WraithicEth" target="_blank" rel="noopener">Twitter / X</a>
+      <a href="#access">Discord</a>
+      <a href="#access">OpenSea</a>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 WRAITHIC. Static took the rest.</div>
+</footer>
+
+<script>
+  // ---- static noise background ----
+  (function(){
+    const canvas = document.getElementById('noise');
+    const ctx = canvas.getContext('2d');
+    function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function draw(){
+      const w = canvas.width, h = canvas.height;
+      const imgData = ctx.createImageData(w, h);
+      const buffer = new Uint32Array(imgData.data.buffer);
+      for(let i=0;i<buffer.length;i++){
+        const v = Math.random() < 0.5 ? 0 : 255;
+        buffer[i] = (255<<24) | (v<<16) | (v<<8) | v;
+      }
+      ctx.putImageData(imgData, 0, 0);
+      if(!reduceMotion) requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  // ---- hero glitch flicker on the wordmark ----
+  (function(){
+    const title = document.querySelector('.hero-title span');
+    if(!title) return;
+    setInterval(()=>{
+      if(Math.random() < 0.15){
+        title.style.textShadow = '2px 0 #5ec8d8, -2px 0 #d9714f';
+        setTimeout(()=>{ title.style.textShadow = 'none'; }, 90);
+      }
+    }, 1400);
+  })();
+
+  // ---- Roadmap scroll reveal ----
+  (function(){
+    const steps = document.querySelectorAll('.signal-step');
+    if(!steps.length) return;
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.35 });
+    steps.forEach(step=> io.observe(step));
+  })();
+
+  // ---- FAQ accordion ----
+  document.querySelectorAll('.faq-item').forEach(item=>{
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q.addEventListener('click', ()=>{
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(other=>{
+        other.classList.remove('open');
+        other.querySelector('.faq-a').style.maxHeight = null;
+      });
+      if(!isOpen){
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+
+  // ---- Task link tracking (must visit all 3 before submitting) ----
+  const taskLinks = document.querySelectorAll('.field-link[data-task]');
+  const visited = { follow: false, retweet: false, comment: false };
+
+  taskLinks.forEach(link=>{
+    link.addEventListener('click', ()=>{
+      const task = link.dataset.task;
+      visited[task] = true;
+      link.classList.add('visited');
+      updateSubmitState();
+    });
+  });
+
+  function allTasksVisited(){
+    return visited.follow && visited.retweet && visited.comment;
+  }
+
+  function updateSubmitState(){
+    if(allTasksVisited()){
+      submitBtnEl.disabled = false;
+      submitBtnEl.textContent = 'Submit Request';
+    } else {
+      submitBtnEl.disabled = true;
+      submitBtnEl.textContent = 'Complete Tasks Above First';
+    }
+  }
+
+  // ---- Access form submission ----
+  // Deploy a Google Apps Script bound to a Google Sheet, then paste the
+  // /exec URL below. Same pattern as previous whitelist sites.
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtOMDn5wx7ixf_Qe_5LIPyeb2Uo1xEbcpGmXXKNSFzL9UhVcJEvUE7hObbRs4Nsco/exec';
+
+  const form = document.getElementById('access-form');
+  const statusEl = document.getElementById('form-status');
+  const submitBtnEl = document.getElementById('submit-btn');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    if(!allTasksVisited()){
+      statusEl.textContent = 'Visit the Follow, Retweet, and Post links above first.';
+      statusEl.className = 'form-status err';
+      return;
+    }
+
+    const wallet = document.getElementById('wallet').value.trim();
+    const twitter = document.getElementById('twitter').value.trim();
+    const commentLink = document.getElementById('comment-link').value.trim();
+
+    if(!/^0x[a-fA-F0-9]{40}$/.test(wallet)){
+      statusEl.textContent = 'Enter a valid wallet address.';
+      statusEl.className = 'form-status err';
+      return;
+    }
+
+    if(!commentLink){
+      statusEl.textContent = 'Paste the link to your comment.';
+      statusEl.className = 'form-status err';
+      return;
+    }
+
+    if(SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+      statusEl.textContent = 'Form not connected yet — add your Apps Script URL.';
+      statusEl.className = 'form-status err';
+      return;
+    }
+
+    submitBtnEl.disabled = true;
+    statusEl.textContent = 'Submitting...';
+    statusEl.className = 'form-status';
+
+    const params = new URLSearchParams();
+    params.append('wallet', wallet);
+    params.append('twitter', twitter);
+    params.append('comment_link', commentLink);
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    })
+      .then(()=>{
+        statusEl.textContent = 'Request received. Watch Twitter for updates.';
+        statusEl.className = 'form-status ok';
+        form.reset();
+        taskLinks.forEach(l=> l.classList.remove('visited'));
+        Object.keys(visited).forEach(k=> visited[k] = false);
+      })
+      .catch((err)=>{
+        console.error('Wraithic form submit error:', err);
+        statusEl.textContent = 'Something went wrong. Try again.';
+        statusEl.className = 'form-status err';
+      })
+      .finally(()=>{ updateSubmitState(); });
+  });
+</script>
+
+</body>
+</html>
